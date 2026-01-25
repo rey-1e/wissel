@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wissel - Professional Image Editor</title>
+    <!-- UPDATED LINK: Just "style.css" because they are in the same folder now -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- WORKBOARD (Left) -->
+        <div class="workboard">
+            <div class="toolbar">
+                <button class="icon-btn" onclick="browseFile()">
+                    <!-- SVG: Plus Icon -->
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Import Images
+                </button>
+            </div>
+            
+            <div id="image-grid" class="image-grid"></div>
+
+            <div id="placeholderText">
+                <h2>Wissel Studio</h2>
+                <p>Import or Drop images to begin</p>
+            </div>
+
+            <div class="destination-panel">
+                <h3 style="margin-bottom: 8px;">Export Destination</h3>
+                <label class="checkbox-container">
+                    <input type="checkbox" id="replaceOriginal">
+                    <span>Overwrite Original File(s)</span>
+                </label>
+                
+                <div class="dest-row">
+                    <input type="text" id="outputFolder" class="dest-input" placeholder="Default: Same folder as source" readonly>
+                    <button id="browseFolderBtn" class="icon-btn" style="padding: 8px 14px;" title="Browse Folder">
+                        <!-- SVG: Folder Icon -->
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIDEBAR (Right) -->
+        <div class="sidebar">
+            <div class="header">
+                <h2 id="sidebar-title">Editor</h2>
+                <span class="file-info" id="fileName">No images selected</span>
+            </div>
+
+            <!-- DIMENSIONS -->
+            <div class="section">
+                <h3>Dimensions & Scaling</h3>
+                
+                <div class="pill-nav">
+                    <button class="pill-btn active" onclick="setResizeMode('px', this)">Exact</button>
+                    <button class="pill-btn" onclick="setResizeMode('pct', this)">Percent</button>
+                    <button class="pill-btn" onclick="setResizeMode('social', this)">Social</button>
+                </div>
+
+                <!-- Exact -->
+                <div id="view-px" class="resize-view active">
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>Width <span class="unit-label">px</span></label>
+                            <input type="number" id="widthInput" placeholder="0">
+                        </div>
+                        <div class="input-group">
+                            <label>Height <span class="unit-label">px</span></label>
+                            <input type="number" id="heightInput" placeholder="0">
+                        </div>
+                    </div>
+                    
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="lockRatio" checked>
+                        <span>Maintain Aspect Ratio</span>
+                    </label>
+
+                    <div id="bgFillContainer" class="bg-fill-box">
+                        <div class="box-header">
+                            <label class="checkbox-container" style="margin:0;">
+                                <input type="checkbox" id="bgFillCheckPx">
+                                <span>Canvas Background</span>
+                            </label>
+                        </div>
+                        <div class="fill-controls" id="fillControlsPx">
+                            <div class="fill-option">
+                                <div class="radio-wrapper">
+                                    <input type="radio" name="bgfillPx" id="fillColorRadioPx" checked disabled>
+                                    <label for="fillColorRadioPx">Color</label>
+                                </div>
+                                <div class="color-picker-wrapper">
+                                    <span id="colorHexPx">#000000</span>
+                                    <input type="color" id="fillColorInputPx" value="#000000" disabled>
+                                </div>
+                            </div>
+                            <div class="fill-option">
+                                <div class="radio-wrapper">
+                                    <input type="radio" name="bgfillPx" id="fillTransRadioPx" disabled>
+                                    <label for="fillTransRadioPx">Transparent</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Percent -->
+                <div id="view-pct" class="resize-view">
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <label>Scale Factor</label>
+                            <span class="val-display"><span id="scaleVal">100</span>%</span>
+                        </div>
+                        <input type="range" id="scaleSlider" min="10" max="200" value="100">
+                        <p class="desc-small">Output will be <span id="scaleText">100</span>% of original.</p>
+                    </div>
+                </div>
+
+                <!-- Social -->
+                <div id="view-social" class="resize-view">
+                    <div class="input-group">
+                        <label>Platform</label>
+                        <select id="platformSelect"></select>
+                    </div>
+                    <div class="input-group">
+                        <label>Template</label>
+                        <select id="presetSelect"></select>
+                    </div>
+                    <div class="input-row readonly-row">
+                        <div class="input-group">
+                            <label>Width</label>
+                            <input type="number" id="socialWidth" readonly>
+                        </div>
+                        <div class="input-group">
+                            <label>Height</label>
+                            <input type="number" id="socialHeight" readonly>
+                        </div>
+                    </div>
+                    <div class="bg-fill-box">
+                        <div class="box-header">
+                            <label class="checkbox-container" style="margin:0;">
+                                <input type="checkbox" id="bgFillCheck">
+                                <span>Canvas Background</span>
+                            </label>
+                        </div>
+                        <div class="fill-controls">
+                            <div class="fill-option">
+                                <div class="radio-wrapper">
+                                    <input type="radio" name="bgfill" id="fillColorRadio" checked disabled>
+                                    <label for="fillColorRadio">Color</label>
+                                </div>
+                                <div class="color-picker-wrapper">
+                                    <span id="colorHex">#000000</span>
+                                    <input type="color" id="fillColorInput" value="#000000" disabled>
+                                </div>
+                            </div>
+                            <div class="fill-option">
+                                <div class="radio-wrapper">
+                                    <input type="radio" name="bgfill" id="fillTransRadio" disabled>
+                                    <label for="fillTransRadio">Transparent</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- EXPORT SETTINGS -->
+            <div class="section">
+                <h3>Export Settings</h3>
+                
+                <div class="input-group">
+                    <label>Image Quality</label>
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <label style="font-weight: 400; font-size: 12px; color: var(--text-sub);">Compression</label>
+                            <span class="val-display" id="qualityVal">90%</span>
+                        </div>
+                        <input type="range" id="qualitySlider" min="1" max="100" value="90">
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>Format</label>
+                        <select id="exportFormat"></select>
+                    </div>
+                    <div class="input-group">
+                        <label>Resampling</label>
+                        <select id="resampleMode">
+                            <option value="Lanczos" selected>Lanczos (High Quality)</option>
+                            <option value="Bicubic">Bicubic</option>
+                            <option value="Bilinear">Bilinear</option>
+                            <option value="Box">Box (Sharper)</option>
+                            <option value="Nearest">Nearest Neighbor (Pixel Art)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Max Size <span class="unit-label">KB</span></label>
+                    <input type="number" id="targetSize" placeholder="Optional">
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer-actions">
+                <button class="primary-btn" id="processBtn" disabled>
+                    Export Images
+                </button>
+                <button class="text-btn" onclick="installContextMenu()">Enable Context Menu (Win)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mini Editor Modal -->
+    <div id="mini-editor-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Transform Image</h3>
+                <button class="close-btn" onclick="closeMiniEditor()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="mini-editor-preview">
+                    <img id="mini-editor-image" src="" alt="">
+                </div>
+                <div class="mini-editor-controls">
+                     <button class="control-btn" onclick="transformImage('flip_horizontal')">
+                        <!-- SVG: Flip H -->
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+                        Flip Horizontal
+                    </button>
+                    <button class="control-btn" onclick="transformImage('flip_vertical')">
+                        <!-- SVG: Flip V -->
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 11 17 11 17 3"></polyline></svg>
+                        Flip Vertical
+                    </button>
+                    <button class="control-btn" onclick="transformImage('rotate_90')">
+                        <!-- SVG: Rotate -->
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2v6h6M2.66 15.57a10 10 0 1 0 .57-8.38"/></svg>
+                        Rotate 90°
+                    </button>
+                </div>
+            </div>
+             <div class="modal-footer">
+                <button class="primary-btn" onclick="closeMiniEditor()" style="width: auto; padding: 10px 30px;">Apply & Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- OVERWRITE CONFIRMATION MODAL -->
+    <div id="confirm-modal" class="modal-overlay" style="display: none; z-index: 205;">
+        <div class="modal-content" style="max-width: 400px; height: auto;">
+            <div class="modal-header">
+                <h3 style="color: #ff6b6b; display:flex; align-items:center; gap:8px;">
+                    <!-- SVG: Warning -->
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    Warning
+                </h3>
+            </div>
+            <div class="modal-body" style="height: auto; padding: 20px; display: block;">
+                <p style="color: var(--text-main);">You have selected <b>Overwrite Original Files</b>.</p>
+                <p style="color: var(--text-sub); margin-top:10px;">This action cannot be undone. Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="control-btn" onclick="document.getElementById('confirm-modal').style.display='none'">Cancel</button>
+                <button class="primary-btn" style="width: auto; background: #fa5252;" id="confirmBtnAction">Yes, Overwrite</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROGRESS MODAL -->
+    <div id="progress-modal" class="modal-overlay" style="display: none; z-index: 200;">
+        <div class="modal-content" style="max-width: 450px; height: auto;">
+            <div class="modal-header" style="justify-content: center;">
+                <h3>Processing</h3>
+            </div>
+            <div class="modal-body" style="height: auto; padding: 30px; flex-direction: column; gap: 15px;">
+                <div class="progress-bar-track">
+                    <div id="progress-bar-fill" class="progress-bar-fill"></div>
+                </div>
+                <p id="progress-text" style="text-align: center; color: var(--text-sub); font-size: 14px;">Starting...</p>
+                
+                <button class="control-btn" onclick="cancelProcessing()" style="margin-top: 10px; justify-content: center; border-color: #ff6b6b; color: #ff6b6b;">
+                    <!-- SVG: Stop -->
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><rect x="9" y="9" width="6" height="6"></rect></svg>
+                    Stop Processing
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESULTS REPORT MODAL -->
+    <div id="results-modal" class="modal-overlay" style="display: none; z-index: 210;">
+        <div class="modal-content" style="max-width: 500px; height: auto; max-height: 80vh;">
+            <div class="modal-header">
+                <h3>Export Report</h3>
+                <button class="close-btn" onclick="document.getElementById('results-modal').style.display='none'">&times;</button>
+            </div>
+            <div class="modal-body" style="height: auto; padding: 20px; display: block;">
+                <div id="results-summary" style="margin-bottom: 15px; font-weight: bold; font-size: 16px;"></div>
+                <div id="error-list" class="error-list"></div>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="control-btn" id="openFolderBtn" style="width: auto;">
+                    <!-- SVG: Folder -->
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                    Open Folder
+                </button>
+                <button class="primary-btn" onclick="document.getElementById('results-modal').style.display='none'" style="width: auto;">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- UPDATED SCRIPT LINK: Just "script.js" because they are in the same folder now -->
+    <script src="script.js"></script>
+</body>
+</html>
